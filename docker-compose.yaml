@@ -1,0 +1,43 @@
+version: "3"
+
+services:
+  postgres:
+    image: postgres:14-alpine
+    container_name: postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
+      PG_SHARED_BUFFERS: "1GB"
+      PG_WORK_MEM: "16MB"
+      PG_MAINTENANCE_WORK_MEM: "400MB"
+      PG_EFFECTIVE_CACHE_SIZE: "2.5GB"
+      PG_WAL_LEVEL: "logical"
+      PG_WAL_BUFFERS: "16MB"
+      PG_MIN_WAL_SIZE: "1GB"
+      PG_MAX_WAL_SIZE: "2GB"
+      PG_CHECKPOINT_TIMEOUT: "10min"
+      PG_MAX_CONNECTIONS: "500"
+      PG_MAX_WORKER_PROCESSES: "2"
+      PG_MAX_PARALLEL_WORKERS_PER_GATHER: "1"
+      PG_MAX_PARALLEL_WORKERS: "2"
+      PG_RANDOM_PAGE_COST: "1.1"
+      PG_LOG_STATEMENT: "all"
+      PG_AUTOVACUUM: "on"
+    networks:
+      - app
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+networks:
+  app:
+    driver: bridge
+
+volumes:
+  postgres-data: {}
+
