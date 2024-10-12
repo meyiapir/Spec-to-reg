@@ -38,7 +38,7 @@ class RabbitMQSettings(EnvBaseSettings):
 
 
 class Settings(DBSettings):
-    pass
+    OPENAI_API_KEY: str
 
 
 settings = Settings()
