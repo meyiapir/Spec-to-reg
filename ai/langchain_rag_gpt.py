@@ -1,17 +1,15 @@
-from langchain_community.vectorstores import FAISS
-from langchain_openai import OpenAIEmbeddings
-from langchain.prompts import ChatPromptTemplate
-from langchain_openai import ChatOpenAI
-from langchain_core.output_parsers import StrOutputParser
-import openai
-import tiktoken
-import faiss
-
 import os
+
 import PyPDF2
+from langchain.prompts import ChatPromptTemplate
+from langchain_community.vectorstores import FAISS
+from langchain_core.output_parsers import StrOutputParser
+from langchain_openai import ChatOpenAI
+from langchain_openai import OpenAIEmbeddings
 
 # Установите ваш API-ключ OpenAI
 os.environ['OPENAI_API_KEY'] = ''
+
 
 # Функция для извлечения текста из текстовых файлов или PDF
 def extract_text_from_file(file_path):
@@ -32,12 +30,14 @@ def extract_text_from_file(file_path):
     else:
         raise ValueError(f"Неподдерживаемый формат файла: {file_extension}")
 
+
 # Функция для векторизации и сопоставления
 def vectorize_documents(specifications):
     # Векторизация регламентов с помощью OpenAIEmbeddings
     embedding_model = OpenAIEmbeddings()
     vectorstore = FAISS.from_texts([specifications], embedding=embedding_model)
     return vectorstore
+
 
 # Основная функция проверки требований с использованием LangChain и GPT
 def check_use_cases_against_specifications_gpt(file_paths, specifications):
@@ -74,8 +74,10 @@ def check_use_cases_against_specifications_gpt(file_paths, specifications):
             print(f"Файл: {file_path} не имеет соответствующих регламентов.")
             print("-" * 40)
 
+
 # Пример использования функции:
-file_paths = ["./regl/AVAS_EN.pdf", "./regl/Braking_EN.pdf", "./regl/Wipe_and_wash_ENG.pdf"]  # Пути к файлам с регламентами
+file_paths = ["./regl/AVAS_EN.pdf", "./regl/Braking_EN.pdf",
+              "./regl/Wipe_and_wash_ENG.pdf"]  # Пути к файлам с регламентами
 specifications = """
 I-23222
 OC Subsection: [F-3681] New OC Subsection: 06 Driving / Wipers and Washers
