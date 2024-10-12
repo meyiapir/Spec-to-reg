@@ -1,3 +1,5 @@
+import os
+
 import requests
 
 # Пути к тестовым файлам
