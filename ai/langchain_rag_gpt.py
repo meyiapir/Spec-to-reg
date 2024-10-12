@@ -1,23 +1,21 @@
-import os
-import tempfile
-
-import PyPDF2
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.responses import JSONResponse
+import os
+import PyPDF2
 from langchain.prompts import ChatPromptTemplate
 from langchain_community.vectorstores import FAISS
 from langchain_core.output_parsers import StrOutputParser
 from langchain_openai import ChatOpenAI
 from langchain_openai import OpenAIEmbeddings
+import tempfile
 
 app = FastAPI()
 
 # Установите ваш API-ключ OpenAI
-os.environ['OPENAI_API_KEY'] = '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'
+os.environ['OPENAI_API_KEY'] = ''
 
 # Функция для извлечения текста из текстовых файлов или PDF
 def extract_text_from_file(file_path):
-    print(file_path)
     _, file_extension = os.path.splitext(file_path)
 
     if file_extension.lower() == ".txt":
@@ -38,7 +36,6 @@ def extract_text_from_file(file_path):
             else:
                 raise ValueError(f"Не удалось извлечь текст из PDF файла: {file_path}")
     else:
-        print(file_extension)
         raise ValueError(f"Неподдерживаемый формат файла: {file_extension if file_extension else 'неизвестный формат'}")
 
 # Функция для векторизации и сопоставления
@@ -49,18 +46,30 @@ def vectorize_documents(specifications):
     return vectorstore
 
 # Основная функция проверки требований с использованием LangChain и GPT
-def check_use_cases_against_specifications_gpt(file_paths, specifications):
+def check_use_cases_against_specifications_gpt(file_paths, specifications, language):
     # Векторизация текста регламентов
     vectorstore = vectorize_documents(specifications)
 
     # Модель GPT для анализа
     model = ChatOpenAI(model="gpt-4o-mini", temperature=0.0)
-    ru_prompt_template = ChatPromptTemplate.from_template(
-        """Ты система для сверки спецификации с регламентами. Отвечай максимально точно без лишних отступлений. Проанализируй следующие требования на соответствие регламентам: {requirement}.
-Для каждого требования сопоставь его с регламентом и укажи, соблюдены ли регламенты. Если модель найдет слово или термин, который вызывает затруднение или который она интерпретирует как неясный, выдели его с двух сторон символами #- (например, #-Слово#-).
-Добавь комментарий, если есть расхождения между требованиями и регламентом, и также выделяй проблемные термины в этих комментариях.
-        """
-    )
+
+    # Выбор шаблона на основе языка
+    if language == "ru":
+        prompt_template = ChatPromptTemplate.from_template(
+            """
+            Ты система для сверки спецификации с регламентами. Отвечай максимально точно без лишних отступлений. Проанализируй следующие требования на соответствие регламентам: {requirement}.
+            Для каждого требования сопоставь его с регламентом и укажи, соблюдены ли регламенты. Если модель найдет слово или термин, который вызывает затруднение или который она интерпретирует как неясный, выдели его с двух сторон символами #- (например, #-Слово#-).
+            Добавь комментарий, если есть расхождения между требованиями и регламентом, и также выделяй проблемные термины в этих комментариях.
+            """
+        )
+    else:
+        prompt_template = ChatPromptTemplate.from_template(
+            """
+            Analyze the following requirements for compliance with the regulations: {requirement}. 
+            For each requirement, match it with the regulation and indicate whether the regulations are met. If the model finds a word or term that is unclear or difficult to interpret, highlight it with #- symbols on both sides (e.g., #-Word#-).
+            Add a comment if there are discrepancies between the requirements and the regulations, and also highlight problematic terms in these comments.
+            """
+        )
 
     output_parser = StrOutputParser()
     responses = []
@@ -73,7 +82,7 @@ def check_use_cases_against_specifications_gpt(file_paths, specifications):
 
         if docs:
             # Создаем запрос для GPT
-            prompt = ru_prompt_template.format(requirement=use_case_text)
+            prompt = prompt_template.format(requirement=use_case_text)
 
             # GPT анализирует требования и регламенты
             response = model(prompt)
@@ -87,7 +96,7 @@ def check_use_cases_against_specifications_gpt(file_paths, specifications):
 
 # Маршрут для загрузки файлов и текстовых спецификаций
 @app.post("/check-requirements/")
-async def check_requirements(specifications: str = Form(...), files: list[UploadFile] = File(...)):
+async def check_requirements(specifications: str = Form(...), language: str = Form("en"), files: list[UploadFile] = File(...)):
     file_paths = []
     try:
         # Сохранение загруженных файлов во временные файлы
@@ -98,7 +107,8 @@ async def check_requirements(specifications: str = Form(...), files: list[Upload
             file_paths.append(temp_file.name)
 
         # Проверка требований на соответствие регламентам
-        results = check_use_cases_against_specifications_gpt(file_paths, specifications)
+        results = check_use_cases_against_specifications_gpt(file_paths, specifications, language)
+
         return JSONResponse(content={"results": results})
 
     finally:

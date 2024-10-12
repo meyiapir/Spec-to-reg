@@ -1,6 +1,10 @@
+import json
 import os
+import time
 
 import requests
+import markdown
+
 
 # Пути к тестовым файлам
 test_file_paths = [
@@ -52,12 +56,32 @@ Type: Use Case CF
 
 # Загружаем файлы и отправляем запрос к API
 files = [('files', (file_path.split('/')[-1], open(file_path, 'rb'))) for file_path in test_file_paths]
-response = requests.post(url, data={'specifications': specifications}, files=files)
+data = {
+    'specifications': specifications,
+    'language': 'ru'  # или 'en' для английского
+}
+t1 = time.time()
+response = requests.post(url, data=data, files=files)
+print(f"Время выполнения: {time.time() - t1:.2f} сек.")
 
 # Проверка ответа
 if response.status_code == 200:
-    print("Успешный ответ от API:")
-    print(response.json())
+    # Получение JSON ответа
+    json_response = response.json()
+
+    # Преобразование ответа в Markdown
+    results = json_response.get("results", [])
+    for result in results:
+        file_name = result["file"]
+        response_text = result["response"]
+
+        # Преобразование текста с Markdown разметкой в HTML
+        html = markdown.markdown(response_text)
+
+        # Вывод результатов (в HTML виде или просто как отформатированный текст)
+        print(f"Файл: {file_name}")
+        print(f"Ответ в HTML:\n{html}\n")
 else:
     print(f"Ошибка при выполнении запроса: {response.status_code}")
     print(response.text)
+
