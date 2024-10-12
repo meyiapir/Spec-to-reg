@@ -5,7 +5,7 @@ from uuid import uuid4
 from asyncpg import Connection
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 
-from API.core.config import settings
+from core.config import settings
 
 from sqlalchemy.engine.url import URL
 
