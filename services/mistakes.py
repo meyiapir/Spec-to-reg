@@ -21,10 +21,13 @@ async def record_mistake(session: AsyncSession, reason: str) -> None:
         await session.close()
 
 
-async def collect_reasons(session: AsyncSession) -> list[MistakesModel.reason]:
+async def collect_reasons(session: AsyncSession) -> list:
     query = select(MistakesModel.created_at, MistakesModel.reason).limit(500000)
 
     result = await session.execute(query)
     rows = result.fetchall()
 
-    return rows
+    created_ats = [row[0] for row in rows]
+    reasons = [row[1] for row in rows]
+
+    return created_ats, reasons
