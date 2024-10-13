@@ -9,10 +9,12 @@ from langchain_openai import ChatOpenAI
 from langchain_openai import OpenAIEmbeddings
 import tempfile
 
+from ai.prompts_lib import eng_prompt, rus_prompt
+
 app = FastAPI()
 
 # Установите ваш API-ключ OpenAI
-os.environ['OPENAI_API_KEY'] = ''
+os.environ['OPENAI_API_KEY'] = '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'
 
 # Функция для извлечения текста из текстовых файлов или PDF
 def extract_text_from_file(file_path):
@@ -57,7 +59,7 @@ def check_use_cases_against_specifications_gpt(file_paths, specifications, langu
     if language == "ru":
         prompt_template = ChatPromptTemplate.from_template(
             """
-            Ты система для сверки спецификации с регламентами. Отвечай максимально точно без лишних отступлений. Проанализируй следующие требования на соответствие регламентам: {requirement}.
+            Ты система для сверки спецификации с регламентами. Отвечай максимально точно без лишних отступлений. Проанализируй следующие требования на соответствие регламентам: {specifications}.
             Для каждого требования сопоставь его с регламентом и укажи, соблюдены ли регламенты. Если модель найдет слово или термин, который вызывает затруднение или который она интерпретирует как неясный, выдели его с двух сторон символами #- (например, #-Слово#-).
             Добавь комментарий, если есть расхождения между требованиями и регламентом, и также выделяй проблемные термины в этих комментариях.
             """
@@ -65,7 +67,7 @@ def check_use_cases_against_specifications_gpt(file_paths, specifications, langu
     else:
         prompt_template = ChatPromptTemplate.from_template(
             """
-            Analyze the following requirements for compliance with the regulations: {requirement}. 
+            Analyze the following requirements for compliance with the regulations: {specifications}. 
             For each requirement, match it with the regulation and indicate whether the regulations are met. If the model finds a word or term that is unclear or difficult to interpret, highlight it with #- symbols on both sides (e.g., #-Word#-).
             Add a comment if there are discrepancies between the requirements and the regulations, and also highlight problematic terms in these comments.
             """
@@ -82,7 +84,7 @@ def check_use_cases_against_specifications_gpt(file_paths, specifications, langu
 
         if docs:
             # Создаем запрос для GPT
-            prompt = prompt_template.format(requirement=use_case_text)
+            prompt = prompt_template.format(specifications=specifications)
 
             # GPT анализирует требования и регламенты
             response = model(prompt)
@@ -93,6 +95,8 @@ def check_use_cases_against_specifications_gpt(file_paths, specifications, langu
             responses.append({"file": file_path, "response": "Не имеет соответствующих регламентов."})
 
     return responses
+
+
 
 # Маршрут для загрузки файлов и текстовых спецификаций
 @app.post("/check-requirements/")

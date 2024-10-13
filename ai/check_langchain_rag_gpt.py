@@ -22,43 +22,15 @@ I-23222
 OC Subsection: [F-3681] New OC Subsection: 06 Driving / Wipers and Washers
 
 Description: 
-Use Case: "rain - light sensor malfunction"
-Goal: To inform the driver about the malfunction of the rain - light sensor and ensure the driver can take appropriate actions in response to the malfunction.
-Scope: SWP, Smartphone
-Actor: driver, authorized user of Atom App
-Preconditions:
-    1. Car is on. 
-    2. The driver is in the car. 
-    3. The user is authorized in the Atom App on their smartphone. 
-    4. Both the vehicle and the smartphone have access to a cellular network. 
-    5. The auto rain-light sensor is enabled. 
-Trigger:
-    1. The rain sensor malfunctions. 
-    2. The light sensor malfunctions. 
-Main Scenario:
-    1. The system detects a malfunction in either the rain sensor or the light sensor. 
-    2. The system displays a failure alert on the out_2.SWP and out_5. Smartphone via the Atom App. 
-    3. Automatic Wiper Function: 
-        ◦ If the rain sensor malfunctions, the system disables the automatic wiper function. 
-        ◦ The driver is prompted out_2.SWP to manually control the wipers in_10. 
-        ◦ If a manual setting cannot be determined, the wipers turn off. 
-        ◦ On out_2.SWP and out_5. Smartphone shows message. 
-    4. Automatic Headlight Function (Auto Low Beam Headlamp): 
-        ◦ If the light sensor malfunctions, the system disables the automatic headlight function. 
-        ◦ The driver is prompted out_2.SWP to manually control the headlights in_2. 
-        ◦ If a manual setting cannot be determined, the auto low beam headlamp turn off. 
-        ◦ On out_2.SWP and out_5. Smartphone shows message. 
-
-Priority: Normal
-
-Type: Use Case CF
+Машинка для людей
+ТИпо тесла
 """
 
 # Загружаем файлы и отправляем запрос к API
 files = [('files', (file_path.split('/')[-1], open(file_path, 'rb'))) for file_path in test_file_paths]
 data = {
     'specifications': specifications,
-    'language': 'ru'  # или 'en' для английского
+    'language': 'ru'
 }
 t1 = time.time()
 response = requests.post(url, data=data, files=files)
@@ -69,18 +41,9 @@ if response.status_code == 200:
     # Получение JSON ответа
     json_response = response.json()
 
-    # Преобразование ответа в Markdown
-    results = json_response.get("results", [])
-    for result in results:
-        file_name = result["file"]
-        response_text = result["response"]
-
-        # Преобразование текста с Markdown разметкой в HTML
-        html = markdown.markdown(response_text)
-
-        # Вывод результатов (в HTML виде или просто как отформатированный текст)
-        print(f"Файл: {file_name}")
-        print(f"Ответ в HTML:\n{html}\n")
+    # Красивый вывод с отступами
+    print("Успешный ответ от API:")
+    print(json.dumps(json_response, indent=4, ensure_ascii=False))
 else:
     print(f"Ошибка при выполнении запроса: {response.status_code}")
     print(response.text)
