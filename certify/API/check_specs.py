@@ -4,7 +4,7 @@ import tempfile
 from fastapi import UploadFile, File, Form, APIRouter
 from fastapi.responses import JSONResponse
 
-from ai.langchain_rag_gpt import check_use_cases_against_specifications_gpt
+from certify.ai.langchain_rag_gpt import check_use_cases_against_specifications_gpt
 
 router = APIRouter(prefix="/process")
 

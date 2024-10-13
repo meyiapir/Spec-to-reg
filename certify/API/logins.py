@@ -3,9 +3,9 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import delete, select, insert
 
-from database.database import sessionmaker
-from database.models.logins import LoginsModel
-from database.schemas.credentials_schemas import CredentialsCommitRequest
+from certify.database.database import sessionmaker
+from certify.database.models.logins import LoginsModel
+from certify.database.schemas.credentials_schemas import CredentialsCommitRequest
 
 router = APIRouter(prefix="/logins")
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from sqlalchemy.orm import Mapped
 
-from database.models.base import Base, str_pk
+from certify.database.models.base import Base, str_pk
 
 
 class LoginsModel(Base):

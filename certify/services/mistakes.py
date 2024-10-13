@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 
-from database.models import MistakesModel
+from certify.database.models import MistakesModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 

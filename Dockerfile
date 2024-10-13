@@ -8,5 +8,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD alembic upgrade head && \
-    python -m Spec-to-reg
+CMD python -m Spec-to-reg

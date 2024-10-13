@@ -7,8 +7,8 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_openai import ChatOpenAI
 from langchain_openai import OpenAIEmbeddings
 
-from ai.prompts_lib import rus_prompt, eng_prompt
-from core.config import settings
+from certify.ai.prompts_lib import rus_prompt, eng_prompt
+from certify.core.config import settings
 
 # Установите ваш API-ключ OpenAI
 os.environ['OPENAI_API_KEY'] = settings.OPENAI_API_KEY

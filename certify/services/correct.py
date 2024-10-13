@@ -1,6 +1,6 @@
 from sqlalchemy.exc import SQLAlchemyError
 
-from database.models import CorrectModel
+from certify.database.models import CorrectModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
