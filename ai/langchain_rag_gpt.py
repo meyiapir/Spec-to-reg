@@ -1,20 +1,17 @@
-from fastapi import FastAPI, UploadFile, File, Form
-from fastapi.responses import JSONResponse
 import os
+
 import PyPDF2
 from langchain.prompts import ChatPromptTemplate
 from langchain_community.vectorstores import FAISS
 from langchain_core.output_parsers import StrOutputParser
 from langchain_openai import ChatOpenAI
 from langchain_openai import OpenAIEmbeddings
-import tempfile
 
-from ai.prompts_lib import eng_prompt, rus_prompt
-
-app = FastAPI()
+from ai.prompts_lib import rus_prompt, eng_prompt
+from core.config import settings
 
 # Установите ваш API-ключ OpenAI
-os.environ['OPENAI_API_KEY'] = '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'
+os.environ['OPENAI_API_KEY'] = settings.OPENAI_API_KEY
 
 # Функция для извлечения текста из текстовых файлов или PDF
 def extract_text_from_file(file_path):
@@ -56,22 +53,12 @@ def check_use_cases_against_specifications_gpt(file_paths, specifications, langu
     model = ChatOpenAI(model="gpt-4o-mini", temperature=0.0)
 
     # Выбор шаблона на основе языка
+    # Выбор шаблона на основе языка
     if language == "ru":
-        prompt_template = ChatPromptTemplate.from_template(
-            """
-            Ты система для сверки спецификации с регламентами. Отвечай максимально точно без лишних отступлений. Проанализируй следующие требования на соответствие регламентам: {specifications}.
-            Для каждого требования сопоставь его с регламентом и укажи, соблюдены ли регламенты. Если модель найдет слово или термин, который вызывает затруднение или который она интерпретирует как неясный, выдели его с двух сторон символами #- (например, #-Слово#-).
-            Добавь комментарий, если есть расхождения между требованиями и регламентом, и также выделяй проблемные термины в этих комментариях.
-            """
-        )
+        prompt_template = ChatPromptTemplate.from_template(rus_prompt)
     else:
-        prompt_template = ChatPromptTemplate.from_template(
-            """
-            Analyze the following requirements for compliance with the regulations: {specifications}. 
-            For each requirement, match it with the regulation and indicate whether the regulations are met. If the model finds a word or term that is unclear or difficult to interpret, highlight it with #- symbols on both sides (e.g., #-Word#-).
-            Add a comment if there are discrepancies between the requirements and the regulations, and also highlight problematic terms in these comments.
-            """
-        )
+        prompt_template = ChatPromptTemplate.from_template(eng_prompt)
+
 
     output_parser = StrOutputParser()
     responses = []
@@ -84,7 +71,7 @@ def check_use_cases_against_specifications_gpt(file_paths, specifications, langu
 
         if docs:
             # Создаем запрос для GPT
-            prompt = prompt_template.format(specifications=specifications)
+            prompt = prompt_template.format(specifications_data=specifications)
 
             # GPT анализирует требования и регламенты
             response = model(prompt)
@@ -98,29 +85,4 @@ def check_use_cases_against_specifications_gpt(file_paths, specifications, langu
 
 
 
-# Маршрут для загрузки файлов и текстовых спецификаций
-@app.post("/check-requirements/")
-async def check_requirements(specifications: str = Form(...), language: str = Form("en"), files: list[UploadFile] = File(...)):
-    file_paths = []
-    try:
-        # Сохранение загруженных файлов во временные файлы
-        for file in files:
-            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf' if file.filename.endswith('.pdf') else '.txt')
-            temp_file.write(await file.read())
-            temp_file.close()
-            file_paths.append(temp_file.name)
 
-        # Проверка требований на соответствие регламентам
-        results = check_use_cases_against_specifications_gpt(file_paths, specifications, language)
-
-        return JSONResponse(content={"results": results})
-
-    finally:
-        # Удаление временных файлов
-        for path in file_paths:
-            if os.path.exists(path):
-                os.remove(path)
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000)
